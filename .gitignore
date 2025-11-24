@@ -127,3 +127,21 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# VITON-HD specific
+# Ignore checkpoint files (pre-trained models)
+checkpoints/*.pth
+checkpoints/*.pkl
+
+# Ignore dataset files
+datasets/test/
+datasets/train/
+datasets/*.txt
+!datasets/.gitignore
+
+# Ignore results
+results/
+
+# Ignore downloaded folders
+checkpoints-*/
+datasets-*/
