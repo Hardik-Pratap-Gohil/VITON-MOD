@@ -1,0 +1,25 @@
+# Core dependencies for Frequency-Enhanced VITON-HD
+
+# Deep Learning
+torch>=1.10.0
+torchvision>=0.11.0
+torchgeometry>=0.1.2
+
+# Image Processing
+Pillow>=8.0.0
+opencv-python>=4.5.0
+numpy>=1.20.0
+
+# Training Utilities
+tensorboardX>=2.4
+tqdm>=4.60.0
+
+# Data Processing
+scipy>=1.7.0
+
+# Optional (for better performance)
+# cudatoolkit=11.3  # Uncomment if using GPU
+
+# Development
+# matplotlib>=3.4.0  # For visualization
+# scikit-image>=0.18.0  # For additional image metrics

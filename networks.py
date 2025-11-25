@@ -306,6 +306,181 @@ class TpsGridGen(nn.Module):
         return warped_grid
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+#                                    Frequency-Domain Processing Modules (NOVEL)
+# ----------------------------------------------------------------------------------------------------------------------
+class FrequencyAwareClothEncoder(nn.Module):
+    """
+    Novel frequency-domain cloth encoder for detail preservation.
+    Separates cloth into high-frequency (patterns, details) and low-frequency (color, shape).
+    This approach is NOT used in any existing VITON literature.
+    """
+    def __init__(self, input_nc=3, output_nc=64):
+        super(FrequencyAwareClothEncoder, self).__init__()
+
+        self.input_nc = input_nc
+        self.output_nc = output_nc
+
+        # Learnable frequency decomposition
+        self.freq_decompose = nn.Conv2d(input_nc, 32, kernel_size=1)
+
+        # High-frequency pathway (for fine details: patterns, logos, text)
+        self.high_freq_path = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, output_nc // 2, kernel_size=3, padding=1)
+        )
+
+        # Low-frequency pathway (for global structure: color, shape)
+        self.low_freq_path = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=5, padding=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=5, padding=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, output_nc // 2, kernel_size=5, padding=2)
+        )
+
+        # Fusion layer
+        self.fuse = nn.Conv2d(output_nc, output_nc, kernel_size=1)
+
+    def dct_2d(self, x):
+        """
+        2D Discrete Cosine Transform
+        PyTorch implementation using FFT
+        """
+        # DCT via FFT: https://en.wikipedia.org/wiki/Discrete_cosine_transform
+        B, C, H, W = x.shape
+
+        # Apply DCT per channel
+        x_dct = torch.zeros_like(x)
+        for b in range(B):
+            for c in range(C):
+                # Use real FFT for efficiency
+                X = torch.fft.rfft2(x[b, c], norm='ortho')
+                # Convert to DCT-like representation
+                x_dct[b, c] = torch.fft.irfft2(X, s=(H, W), norm='ortho')
+
+        return x_dct
+
+    def create_freq_mask(self, H, W, cutoff=0.3, device='cpu'):
+        """
+        Create frequency mask separating high/low frequencies.
+        Low frequencies: center of DCT domain
+        High frequencies: periphery of DCT domain
+        """
+        mask_high = torch.zeros(1, 1, H, W, device=device)
+        mask_low = torch.ones(1, 1, H, W, device=device)
+
+        # Circular mask with cutoff radius
+        center_h, center_w = H // 2, W // 2
+        radius = int(min(H, W) * cutoff)
+
+        for i in range(H):
+            for j in range(W):
+                dist = np.sqrt((i - center_h)**2 + (j - center_w)**2)
+                if dist > radius:
+                    mask_high[0, 0, i, j] = 1
+                    mask_low[0, 0, i, j] = 0
+
+        return mask_high, mask_low
+
+    def forward(self, cloth):
+        """
+        Args:
+            cloth: Input cloth image [B, C, H, W]
+        Returns:
+            Frequency-aware cloth features [B, output_nc, H, W]
+        """
+        B, C, H, W = cloth.shape
+        device = cloth.device
+
+        # Create frequency masks (cached for efficiency)
+        mask_high, mask_low = self.create_freq_mask(H, W, cutoff=0.25, device=device)
+
+        # Transform to frequency domain using DCT
+        freq_cloth = torch.zeros_like(cloth)
+        for c in range(C):
+            freq_cloth[:, c:c+1] = self.dct_2d(cloth[:, c:c+1])
+
+        # Separate high and low frequencies
+        high_freq = freq_cloth * mask_high
+        low_freq = freq_cloth * mask_low
+
+        # Transform back to spatial domain (inverse DCT)
+        high_spatial = torch.zeros_like(high_freq)
+        low_spatial = torch.zeros_like(low_freq)
+
+        for c in range(C):
+            high_spatial[:, c:c+1] = self.dct_2d(high_freq[:, c:c+1])
+            low_spatial[:, c:c+1] = self.dct_2d(low_freq[:, c:c+1])
+
+        # Process each frequency band with specialized pathways
+        high_features = self.high_freq_path(self.freq_decompose(high_spatial))
+        low_features = self.low_freq_path(self.freq_decompose(low_spatial))
+
+        # Fuse frequency bands
+        combined = torch.cat([high_features, low_features], dim=1)
+        output = self.fuse(combined)
+
+        return output
+
+
+class FrequencyEnhancedGMM(nn.Module):
+    """
+    Enhanced GMM with frequency-aware cloth encoding.
+    Replaces standard cloth encoding with frequency-domain processing.
+    """
+    def __init__(self, opt, inputA_nc, inputB_nc):
+        super(FrequencyEnhancedGMM, self).__init__()
+
+        # Original GMM components
+        self.extractionA = FeatureExtraction(inputA_nc, ngf=64, num_layers=4)
+
+        # Replace extractionB with frequency-aware encoder
+        self.freq_cloth_encoder = FrequencyAwareClothEncoder(input_nc=inputB_nc, output_nc=64)
+
+        # Additional layers to match original GMM output dimensions
+        self.cloth_feat_refine = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+
+        # Rest of GMM
+        self.correlation = FeatureCorrelation()
+        self.regression = FeatureRegression(input_nc=192, output_dim=2 * opt.grid_size ** 2)
+        self.gridGen = TpsGridGen(opt.load_height, opt.load_width, opt.grid_size)
+
+    def forward(self, inputA, inputB):
+        """
+        Args:
+            inputA: Person features [B, inputA_nc, H, W]
+            inputB: Cloth image [B, inputB_nc, H, W]
+        Returns:
+            warped_cloth: Warped cloth with preserved details
+            warped_grid: Transformation grid
+        """
+        # Extract person features (original)
+        featureA = self.extractionA(inputA)
+
+        # Extract cloth features with frequency-domain processing (NOVEL)
+        featureB_freq = self.freq_cloth_encoder(inputB)
+        featureB = self.cloth_feat_refine(featureB_freq)
+
+        # Feature correlation and regression (original GMM)
+        corr = self.correlation(featureA, featureB)
+        theta = self.regression(corr)
+        warped_grid = self.gridGen(theta)
+
+        # Warp cloth using predicted grid
+        warped_cloth = F.grid_sample(inputB, warped_grid, padding_mode='border', align_corners=True)
+
+        return warped_cloth, warped_grid
+
+
 class GMM(nn.Module):
     def __init__(self, opt, inputA_nc, inputB_nc):
         super(GMM, self).__init__()

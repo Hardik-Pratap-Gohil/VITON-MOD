@@ -7,7 +7,7 @@ from torch.nn import functional as F
 import torchgeometry as tgm
 
 from datasets import VITONDataset, VITONDataLoader
-from networks import SegGenerator, GMM, ALIASGenerator
+from networks import SegGenerator, GMM, FrequencyEnhancedGMM, ALIASGenerator
 from utils import gen_noise, load_checkpoint, save_images
 
 
@@ -32,6 +32,10 @@ def get_opt():
     parser.add_argument('--seg_checkpoint', type=str, default='seg_final.pth')
     parser.add_argument('--gmm_checkpoint', type=str, default='gmm_final.pth')
     parser.add_argument('--alias_checkpoint', type=str, default='alias_final.pth')
+
+    # Model selection
+    parser.add_argument('--use_freq_gmm', action='store_true',
+                       help='Use Frequency-Enhanced GMM (NOVEL) instead of standard GMM')
 
     # common
     parser.add_argument('--semantic_nc', type=int, default=13, help='# of human-parsing map classes')
@@ -144,7 +148,15 @@ def main():
         os.makedirs(os.path.join(opt.save_dir, opt.name))
 
     seg = SegGenerator(opt, input_nc=opt.semantic_nc + 8, output_nc=opt.semantic_nc)
-    gmm = GMM(opt, inputA_nc=7, inputB_nc=3)
+
+    # Choose GMM type
+    if opt.use_freq_gmm:
+        print("Using Frequency-Enhanced GMM (NOVEL)")
+        gmm = FrequencyEnhancedGMM(opt, inputA_nc=7, inputB_nc=3)
+    else:
+        print("Using Standard GMM")
+        gmm = GMM(opt, inputA_nc=7, inputB_nc=3)
+
     opt.semantic_nc = 7
     alias = ALIASGenerator(opt, input_nc=9)
     opt.semantic_nc = 13
