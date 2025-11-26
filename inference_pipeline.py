@@ -189,8 +189,20 @@ class VITONInference:
         # Run GMM
         with torch.no_grad():
             _, warped_grid = self.gmm(gmm_input, c_gmm)
-            warped_c = F.grid_sample(c, warped_grid, padding_mode='border')
-            warped_cm = F.grid_sample(cm, warped_grid, padding_mode='border')
+            # Apply warping at the target resolution (use current load_width/load_height)
+            # Resize cloth and mask to target resolution first
+            c_resized = F.interpolate(c, size=(self.load_height, self.load_width), mode='bilinear', align_corners=False)
+            cm_resized = F.interpolate(cm, size=(self.load_height, self.load_width), mode='bilinear', align_corners=False)
+            
+            # Upsample the warping grid to target resolution
+            # warped_grid is in normalized coordinates [-1, 1], so we can directly interpolate it
+            grid_upsampled = F.interpolate(warped_grid.permute(0, 3, 1, 2), 
+                                          size=(self.load_height, self.load_width), 
+                                          mode='bilinear', 
+                                          align_corners=False).permute(0, 2, 3, 1)
+            
+            warped_c = F.grid_sample(c_resized, grid_upsampled, padding_mode='border', align_corners=False)
+            warped_cm = F.grid_sample(cm_resized, grid_upsampled, padding_mode='border', align_corners=False)
         
         return warped_c, warped_cm, warped_grid
     

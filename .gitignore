@@ -145,3 +145,8 @@ results/
 # Ignore downloaded folders
 checkpoints-*/
 datasets-*/
+
+# Old/backup files
+README_old.md
+README_INTERACTIVE.md
+test_log.txt

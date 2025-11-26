@@ -229,7 +229,7 @@ class VITONPreprocessor:
         }
         
         parse_agnostic_map = torch.zeros(20, self.load_height, self.load_width, dtype=torch.float)
-        parse_agnostic_map.scatter_(0, parse_agnostic_tensor[0], 1.0)
+        parse_agnostic_map.scatter_(0, parse_agnostic_tensor[0].unsqueeze(0), 1.0)
         
         new_parse_agnostic_map = torch.zeros(13, self.load_height, self.load_width, dtype=torch.float)
         for i in range(len(labels)):
