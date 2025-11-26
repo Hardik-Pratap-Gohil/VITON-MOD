@@ -101,6 +101,10 @@ datasets/test/
 
 **Start the Streamlit web application:**
 ```bash
+# Using the convenience script
+./scripts/run_app.sh
+
+# Or directly
 streamlit run app.py
 ```
 
@@ -119,14 +123,13 @@ The app will open in your browser at `http://localhost:8501`
 Run comprehensive tests to verify all editing capabilities:
 
 ```bash
-# Test realistic editing features (colors, patterns, logos, textures)
-python realistic_test.py
+# Using convenience script
+./scripts/run_tests.sh
 
-# Test logo placement variations
-python logo_test.py
-
-# Run original VITON-HD inference
-python test.py
+# Or run tests individually
+python tests/realistic_test.py  # Test colors, patterns, logos, textures (24 images)
+python tests/logo_test.py       # Test logo placement variations (25 images)
+python tests/test.py            # Run original VITON-HD inference
 ```
 
 Results are saved in `./results/` with organized subdirectories.
@@ -136,31 +139,41 @@ Results are saved in `./results/` with organized subdirectories.
 ```
 VITON-MOD/
 ├── app.py                      # Streamlit web application
-├── cloth_editor.py             # Editing tools (colors, patterns, logos, textures)
-├── inference_pipeline.py       # VITON-HD pipeline wrapper
-├── preprocessing.py            # Data loading utilities
-├── networks.py                 # Neural network architectures
-├── utils.py                    # Helper functions
-├── datasets.py                 # Dataset class (original VITON-HD)
 │
-├── realistic_test.py           # Comprehensive editing tests
-├── logo_test.py                # Logo placement tests
-├── comprehensive_test.py       # General feature tests
-├── test.py                     # Original VITON-HD inference
+├── src/                        # Core source code
+│   ├── __init__.py
+│   ├── cloth_editor.py         # Editing tools (colors, patterns, logos, textures)
+│   ├── inference_pipeline.py   # VITON-HD pipeline wrapper
+│   ├── preprocessing.py        # Data loading utilities
+│   ├── networks.py             # Neural network architectures
+│   ├── utils.py                # Helper functions
+│   └── datasets.py             # Dataset class (original VITON-HD)
+│
+├── tests/                      # Test scripts
+│   ├── __init__.py
+│   ├── realistic_test.py       # Comprehensive editing tests (24 images)
+│   ├── logo_test.py            # Logo placement tests (25 images)
+│   ├── comprehensive_test.py   # General feature tests
+│   └── test.py                 # Original VITON-HD inference
+│
+├── scripts/                    # Utility scripts
+│   ├── run_app.sh              # Launch Streamlit app
+│   └── run_tests.sh            # Run all tests
 │
 ├── checkpoints/                # Pretrained model weights
-│   ├── seg_final.pth
-│   ├── gmm_final.pth
-│   └── alias_final.pth
+│   ├── seg_final.pth           # Segmentation model (132 MB)
+│   ├── gmm_final.pth           # Geometric Matching Module (73 MB)
+│   └── alias_final.pth         # ALIAS Generator (384 MB)
 │
 ├── datasets/                   # Test data
+│   ├── test_pairs.txt
 │   └── test/
 │       ├── image/              # 6 person images
 │       ├── cloth/              # 12 cloth items
-│       ├── cloth-mask/
-│       ├── image-parse/
-│       ├── openpose-img/
-│       └── openpose-json/
+│       ├── cloth-mask/         # Cloth segmentation masks
+│       ├── image-parse/        # Person segmentation maps
+│       ├── openpose-img/       # Pose visualizations
+│       └── openpose-json/      # Pose keypoints (JSON)
 │
 ├── assets/                     # Optional custom content
 │   ├── logos/                  # Custom logo images (PNG)
@@ -168,9 +181,9 @@ VITON-MOD/
 │   └── accessories/            # Reference images
 │
 └── results/                    # Generated outputs
-    ├── realistic_test/
-    ├── logo_test/
-    └── comprehensive_test/
+    ├── realistic_test/         # Realistic editing test results
+    ├── logo_test/              # Logo placement test results
+    └── comprehensive_test/     # General test results
 ```
 
 ## 🎯 Design Philosophy

@@ -11,8 +11,8 @@ import torchgeometry as tgm
 from PIL import Image
 import numpy as np
 
-from networks import SegGenerator, GMM, ALIASGenerator
-from utils import gen_noise, load_checkpoint
+from .networks import SegGenerator, GMM, ALIASGenerator
+from .utils import gen_noise, load_checkpoint
 
 
 class VITONInference:

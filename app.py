@@ -9,9 +9,9 @@ import numpy as np
 from PIL import Image
 import os
 
-from inference_pipeline import VITONInference
-from preprocessing import VITONPreprocessor
-from cloth_editor import ClothColorEditor, PatternGenerator, LogoApplicator, FabricSimulator
+from src.inference_pipeline import VITONInference
+from src.preprocessing import VITONPreprocessor
+from src.cloth_editor import ClothColorEditor, PatternGenerator, LogoApplicator, FabricSimulator
 
 
 # Page config

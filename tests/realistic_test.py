@@ -8,9 +8,9 @@ import torch
 from PIL import Image
 import numpy as np
 
-from inference_pipeline import VITONInference
-from preprocessing import VITONPreprocessor
-from cloth_editor import ClothColorEditor, PatternGenerator, LogoApplicator, FabricSimulator
+from src.inference_pipeline import VITONInference
+from src.preprocessing import VITONPreprocessor
+from src.cloth_editor import ClothColorEditor, PatternGenerator, LogoApplicator, FabricSimulator
 
 def tensor_to_image(tensor):
     """Convert tensor to PIL Image."""

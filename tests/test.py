@@ -6,9 +6,9 @@ from torch import nn
 from torch.nn import functional as F
 import torchgeometry as tgm
 
-from datasets import VITONDataset, VITONDataLoader
-from networks import SegGenerator, GMM, ALIASGenerator
-from utils import gen_noise, load_checkpoint, save_images
+from src.datasets import VITONDataset, VITONDataLoader
+from src.networks import SegGenerator, GMM, ALIASGenerator
+from src.utils import gen_noise, load_checkpoint, save_images
 
 
 def get_opt():
