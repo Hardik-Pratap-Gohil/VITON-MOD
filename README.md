@@ -1,58 +1,41 @@
-# VITON-MOD: Interactive Cloth Editor for VITON-HD## VITON-HD
+# VITON-MOD: Interactive Cloth Editor for VITON-HD
 
+An interactive web application built on top of [VITON-HD](https://arxiv.org/abs/2103.16874) (Choi et al., CVPR 2021) that enables realistic cloth editing through colors, patterns, logos, and textures **without retraining any models**. 
 
+## ✨ Features
 
-An interactive web application built on top of [VITON-HD](https://arxiv.org/abs/2103.16874) (Choi et al., CVPR 2021) that enables realistic cloth editing through colors, patterns, logos, and textures **without retraining any models**.We worked on extending [VITON-HD](https://arxiv.org/abs/2103.16874) by Choi et. al. CVPR 2021.
+- **🎨 Color Editing**
 
+  - 6 preset palettes (Vibrant, Pastel, Earth, Monochrome, Warm, Cool)
 
+  - Custom HSV adjustments (Hue, Saturation, Brightness)
 
-## ✨ Features## Instructions To Run Project
+- **🎭 Pattern Overlay**
 
+  - Procedurally generated patterns (Stripes, Polkadots, Checkerboard)
 
+  - Customizable colors, sizes, and blend modes
 
-- **🎨 Color Editing**```bash
+  - Preserves original cloth lighting and shadows
 
-  - 6 preset palettes (Vibrant, Pastel, Earth, Monochrome, Warm, Cool)git clone ...
+- **🏷️ Logo Placement**
 
-  - Custom HSV adjustments (Hue, Saturation, Brightness)```
+  - Add text logos with custom text, position, size, and color
 
-  
+  - Automatically warps with the cloth for realistic appearance
 
-- **🎭 Pattern Overlay**## Repository Structure
+- **🧵 Fabric Textures**
 
-  - Procedurally generated patterns (Stripes, Polkadots, Checkerboard)```plaintext
+  - Simulate different materials (Canvas, Denim, Silk, Linen)
 
-  - Customizable colors, sizes, and blend modes|-- README.md
-
-  - Preserves original cloth lighting and shadows```
-
-  
-
-- **🏷️ Logo Placement**## Citation
-
-  - Add text logos with custom text, position, size, and color```cite
-
-  - Automatically warps with the cloth for realistic appearance@inproceedings{choi2021viton,
-
-    title={VITON-HD: High-Resolution Virtual Try-On via Misalignment-Aware Normalization},
-
-- **🧵 Fabric Textures**  author={Choi, Seunghwan and Park, Sunghyun and Lee, Minsoo and Choo, Jaegul},
-
-  - Simulate different materials (Canvas, Denim, Silk, Linen)  booktitle={Proc. of the IEEE conference on computer vision and pattern recognition (CVPR)},
-
-  - Subtle texture enhancements without artifacts  year={2021}
-
-}
+  - Subtle texture enhancements without artifacts
+  - 
 
 ## 🚀 Quick Start```
 
+### Prerequisites
 
-
-### Prerequisites## References
-
-
-
-- Python 3.8+- [Author's github](https://github.com/shadow2496/VITON-HD)
+- Python 3.8+
 - 16GB RAM (CPU-only, no GPU required)
 - conda (recommended for environment management)
 
@@ -186,7 +169,7 @@ VITON-MOD/
     └── comprehensive_test/     # General test results
 ```
 
-## 🎯 Design Philosophy
+## 🎯 Design
 
 ### Why Edit the Source Cloth?
 
@@ -210,21 +193,7 @@ Unlike traditional approaches that modify intermediate pipeline outputs (which c
 - **UI**: Streamlit for interactive web interface
 - **No Training Required**: Pure post-processing and pre-processing techniques
 
-## 🤝 Contributing
-
-Contributions welcome! Areas for improvement:
-- Additional pattern generators (floral, camouflage, etc.)
-- Custom logo image support (currently text-only)
-- Accessory rendering using pose keypoints
-- Region-specific color editing (different colors for sleeves vs body)
-
-## 📄 License
-
-See [LICENSE](LICENSE) file for details.
-
 ## 📚 Citation
-
-If you use this work, please cite the original VITON-HD paper:
 
 ```bibtex
 @inproceedings{choi2021viton,
