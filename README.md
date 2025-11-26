@@ -31,7 +31,7 @@ An interactive web application built on top of [VITON-HD](https://arxiv.org/abs/
   - Subtle texture enhancements without artifacts
   - 
 
-## 🚀 Quick Start```
+## 🚀 Quick Start
 
 ### Prerequisites
 
